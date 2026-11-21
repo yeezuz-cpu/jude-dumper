@@ -361,6 +361,7 @@ def dump_rtti_vtables(source: Path, images: dict[str, Image]) -> list[dict]:
                            ".?AVCAnimatableSceneObjectDesc@@": {"generate_primitives": 4},
                            ".?AVCAggregateSceneObjectDesc@@": {"draw": 7},
                            ".?AVCSceneObjectDesc@@": {"draw": 1}}
+            known_slots[".?AVCMaterialSystem2@@"] = {"create_material": 29}
             row["slots"] = {}
             for label, slot in known_slots.get(name, {}).items():
                 pointer = image.pe.get_data(row["rva"] + 8 * slot, 8)
@@ -498,7 +499,7 @@ def main() -> int:
     modules = sorted(
         {target.module.lower() for target in TARGETS.values()}
         | {item["module"].lower() for item in signatures}
-        | {"scenesystem.dll"}
+        | {"scenesystem.dll", "materialsystem2.dll"}
     )
     images: dict[str, Image] = {}
     load_errors: dict[str, str] = {}

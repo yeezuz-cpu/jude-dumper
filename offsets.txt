@@ -1,5 +1,5 @@
 // dumped by Michel
-// 2026-11-21 22:07:58 +0100
+// 2026-11-21 23:58:02 +0100
 
 // client.dll
 dwCSGOInput = 0x256D560
@@ -55,6 +55,8 @@ C_EnvSky::rebuild_sky = 0x270C40
 ClientModeCSNormal = 0x1C99460
 ClientModeCSNormal::override_view = 0xB92A20
 C_CSPlayerPawn::NetworkVar_m_EconGloves = 0x1C83890
+CMaterialSystem2 = 0x12D920
+CMaterialSystem2::create_material = 0x3AF00
 CAggregateSceneObjectDesc = 0x5E4518
 CAggregateSceneObjectDesc::draw = 0x3C5A0
 CAnimatableSceneObjectDesc = 0x5E5C90
