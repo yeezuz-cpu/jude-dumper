@@ -47,6 +47,7 @@ TARGETS = {
     "inventoryUiEngine": Target("client.dll", "48 8B 3D ? ? ? ? 48 C1 E3 20", 3, 7, ".data"),
     "inventoryUiEventType": Target("client.dll", "0F B7 0D ? ? ? ? 66 89 48 ? 48 B9 00 00 00 00 FF FF FF FF 48 89 48 ? 48 8D 0D ? ? ? ? 48 89 08 48 89 58", 3, 7, ".data"),
     "inventoryUiEventVtable": Target("client.dll", "48 8D 0D ? ? ? ? 48 89 08 48 89 58 ? 48 8D 54 24", 3, 7, ".rdata"),
+    "sceneLightQueue": Target("scenesystem.dll", "4C 8B 35 ? ? ? ? C1 E0 05 48 63 D0 49 03 56 ? 49 3B 56 ? 76 ? 49 8B CE FF 15 ? ? ? ? 84 C0 75 ? 49 8B F4", 3, 7, ".data"),
     "dwBuildNumber": Target("engine2.dll", "89 05 ? ? ? ? 48 8D 0D ? ? ? ? FF 15 ? ? ? ? 48 8B 0D", 2, 6, ".data"),
     "dwNetworkGameClient": Target("engine2.dll", "48 89 3D ? ? ? ? FF 87", 3, 7, ".data"),
     "dwWindowHeight": Target("engine2.dll", "8B 05 ? ? ? ? 89 03", 2, 6, ".data"),
@@ -65,6 +66,8 @@ FUNCTION_TARGETS = {
     "inventory_item_added": ("client.dll", "48 89 5C 24 ? 48 89 6C 24 ? 48 89 74 24 ? 57 41 54 41 55 41 56 41 57 48 83 EC 30 44 8B A4 24"),
     "resource_path_init": ("client.dll", "48 89 5C 24 ? 57 48 83 EC 30 8B 41 ? 48 8D 79"),
     "scene_parameter_set": ("client.dll", "48 89 6C 24 ? 48 89 74 24 ? 57 48 83 EC 20 66 0F 6E CA 49 8B F0 66 0F 70 C9 00 8B EA 48 8B F9 45 33 C9 48 8B C1 66 66 0F 1F 84 00 ? ? ? ? 66 0F 6F C1 4C 8D 15 ? ? ? ? 66 0F 76 00 0F 50 C8 85 C9 75 ? 41 FF C1 48 83 C0 10 41 83 F9 02 72 ? 48 8B 87 ? ? ? ? 48 85 C0 74 ? 90 48 8D 48 ? 33 D2 66 66 0F 1F 84 00 ? ? ? ? 66 0F 6F C1 66 0F 76 01 44 0F 50 C0 45 85 C0 75 ? FF C2 48 83 C1 10 83 FA 01"),
+    "scene_light_update": ("scenesystem.dll", "48 89 54 24 ? 55 57 41 56"),
+    "scene_sky_draw": ("scenesystem.dll", "45 85 C9 0F 8E ? ? ? ? 4C 8B DC"),
 }
 
 
