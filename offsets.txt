@@ -1,5 +1,5 @@
 // dumped by Michel
-// 2026-11-21 21:54:58 +0100
+// 2026-11-21 22:05:15 +0100
 
 // client.dll
 dwCSGOInput = 0x256D560
@@ -52,11 +52,18 @@ C_EnvSky::rebuild_sky = 0x270C40
 ClientModeCSNormal = 0x1C99460
 ClientModeCSNormal::override_view = 0xB92A20
 C_CSPlayerPawn::NetworkVar_m_EconGloves = 0x1C83890
+CAggregateSceneObjectDesc = 0x5E4518
+CAggregateSceneObjectDesc::draw = 0x3C5A0
+CAnimatableSceneObjectDesc = 0x5E5C90
+CAnimatableSceneObjectDesc::generate_primitives = 0x7D7C0
+CSceneObjectDesc = 0x5E4668
+CSceneObjectDesc::draw = 0x7A540
 
 // functions
 econ_item_view_constructor = 0x1180300
 inventory_metadata_bind = 0x83A530
 econ_item_view_init = 0x118E040
+weapon_composite_data = 0x21BE10
 particle_create = 0x9D03C0
 particle_control = 0xA0D240
 particle_destroy = 0x9D14D0

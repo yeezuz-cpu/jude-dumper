@@ -58,6 +58,7 @@ FUNCTION_TARGETS = {
     "econ_item_view_constructor": ("client.dll", "48 89 5C 24 ? 48 89 74 24 ? 57 48 83 EC 20 48 8D 05 ? ? ? ? 48 8B F9 48 89 01 45 33 C9"),
     "inventory_metadata_bind": ("client.dll", "48 89 5C 24 ? 48 89 6C 24 ? 48 89 4C 24 ? 56 57 41 56 48 83 EC 60"),
     "econ_item_view_init": ("client.dll", "48 89 5C 24 ? 48 89 6C 24 ? 48 89 74 24 ? 48 89 7C 24 ? 41 56 48 83 EC 20 48 8B D9 45 8B F1"),
+    "weapon_composite_data": ("client.dll", "40 53 48 83 EC 20 48 8B 41 ? 4C 8B 00 4D 85 C0 74 ? 48 8B 40 ? 33 DB 48 63 15 ? ? ? ? 48 8B 88 ? ? ? ? 0F B7 04 51 B9 FF FF 00 00 66 3B C1 74 ? 4A 8B 0C 00 EB ? 48 8B CB 48 85 C9 74 ? 48 8B 49 ? 48 8B 01 FF 50 ? 48 85 C0 74 ? 48 8B 80"),
     "particle_create": ("client.dll", "40 57 48 83 EC 20 49 8B 00"),
     "particle_control": ("client.dll", "48 89 5C 24 ? 48 89 74 24 ? 57 48 83 EC 50 F3 0F 10 1D"),
     "particle_destroy": ("client.dll", "83 FA FF 0F 84 ? ? ? ? 41 54"),
@@ -353,7 +354,10 @@ def dump_rtti_vtables(source: Path, images: dict[str, Image]) -> list[dict]:
         if row["status"] == "ok":
             row["rva"] = row["matches"][0]
             known_slots = {".?AVClientModeCSNormal@@": {"override_view": 15},
-                           ".?AVC_EnvSky@@": {"rebuild_sky": 13}}
+                           ".?AVC_EnvSky@@": {"rebuild_sky": 13},
+                           ".?AVCAnimatableSceneObjectDesc@@": {"generate_primitives": 4},
+                           ".?AVCAggregateSceneObjectDesc@@": {"draw": 7},
+                           ".?AVCSceneObjectDesc@@": {"draw": 1}}
             row["slots"] = {}
             for label, slot in known_slots.get(name, {}).items():
                 pointer = image.pe.get_data(row["rva"] + 8 * slot, 8)
