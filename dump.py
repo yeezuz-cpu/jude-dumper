@@ -37,12 +37,16 @@ TARGETS = {
     "dwGlobalVars": Target("client.dll", "48 89 15 ? ? ? ? 48 89 42", 3, 7, ".data"),
     "dwGlowManager": Target("client.dll", "48 8B 05 ? ? ? ? C3 CC CC CC CC CC CC CC CC 8B 41", 3, 7, ".data"),
     "dwLocalPlayerController": Target("client.dll", "48 8B 05 ? ? ? ? 41 89 BE", 3, 7, ".data"),
-    "dwPlantedC4": Target("client.dll", "48 8B 1D ? ? ? ? 45 32 F6", 3, 7, ".data"),
+    "dwPlantedC4": Target("client.dll", "48 39 2D ? ? ? ? 75 ? 49 89 AE 78 12 00 00 49 89 AE 80 12 00 00 4C 89 35 ? ? ? ?", 3, 7, ".data"),
     "dwPrediction": Target("client.dll", "48 8D 05 ? ? ? ? C3 CC CC CC CC CC CC CC CC 40 53 56 41 54", 3, 7, ".data"),
     "dwSensitivity": Target("client.dll", "48 8D 0D ? ? ? ? 0F 57 C9 0F 28 F0 F3 0F 2A D7", 3, 7, ".data"),
     "dwViewMatrix": Target("client.dll", "48 8D 0D ? ? ? ? 48 C1 E0 06", 3, 7, ".data"),
     "dwViewRender": Target("client.dll", "48 89 05 ? ? ? ? 48 8B C8 48 85 C0", 3, 7, ".data"),
     "inventoryManager": Target("client.dll", "48 8D 05 ? ? ? ? C3 CC CC CC CC CC CC CC CC 0F B6 81 ? ? ? ? C3 CC CC CC CC CC CC CC CC 48 83 B9", 3, 7, ".data"),
+    "particleManager": Target("client.dll", "48 8B 05 ? ? ? ? C3 CC CC CC CC CC CC CC CC 48 89 5C 24 ? 57 B8 40 12 00 00", 3, 7, ".data"),
+    "inventoryUiEngine": Target("client.dll", "48 8B 3D ? ? ? ? 48 C1 E3 20", 3, 7, ".data"),
+    "inventoryUiEventType": Target("client.dll", "0F B7 0D ? ? ? ? 66 89 48 ? 48 B9 00 00 00 00 FF FF FF FF 48 89 48 ? 48 8D 0D ? ? ? ? 48 89 08 48 89 58", 3, 7, ".data"),
+    "inventoryUiEventVtable": Target("client.dll", "48 8D 0D ? ? ? ? 48 89 08 48 89 58 ? 48 8D 54 24", 3, 7, ".rdata"),
     "dwBuildNumber": Target("engine2.dll", "89 05 ? ? ? ? 48 8D 0D ? ? ? ? FF 15 ? ? ? ? 48 8B 0D", 2, 6, ".data"),
     "dwNetworkGameClient": Target("engine2.dll", "48 89 3D ? ? ? ? FF 87", 3, 7, ".data"),
     "dwWindowHeight": Target("engine2.dll", "8B 05 ? ? ? ? 89 03", 2, 6, ".data"),
@@ -54,6 +58,12 @@ FUNCTION_TARGETS = {
     "econ_item_view_constructor": ("client.dll", "48 89 5C 24 ? 48 89 74 24 ? 57 48 83 EC 20 48 8D 05 ? ? ? ? 48 8B F9 48 89 01 45 33 C9"),
     "inventory_metadata_bind": ("client.dll", "48 89 5C 24 ? 48 89 6C 24 ? 48 89 4C 24 ? 56 57 41 56 48 83 EC 60"),
     "econ_item_view_init": ("client.dll", "48 89 5C 24 ? 48 89 6C 24 ? 48 89 74 24 ? 48 89 7C 24 ? 41 56 48 83 EC 20 48 8B D9 45 8B F1"),
+    "particle_create": ("client.dll", "40 57 48 83 EC 20 49 8B 00"),
+    "particle_control": ("client.dll", "48 89 5C 24 ? 48 89 74 24 ? 57 48 83 EC 50 F3 0F 10 1D"),
+    "particle_destroy": ("client.dll", "83 FA FF 0F 84 ? ? ? ? 41 54"),
+    "inventory_item_added": ("client.dll", "48 89 5C 24 ? 48 89 6C 24 ? 48 89 74 24 ? 57 41 54 41 55 41 56 41 57 48 83 EC 30 44 8B A4 24"),
+    "resource_path_init": ("client.dll", "48 89 5C 24 ? 57 48 83 EC 30 8B 41 ? 48 8D 79"),
+    "scene_parameter_set": ("client.dll", "48 89 6C 24 ? 48 89 74 24 ? 57 48 83 EC 20 66 0F 6E CA 49 8B F0 66 0F 70 C9 00 8B EA 48 8B F9 45 33 C9 48 8B C1 66 66 0F 1F 84 00 ? ? ? ? 66 0F 6F C1 4C 8D 15 ? ? ? ? 66 0F 76 00 0F 50 C8 85 C9 75 ? 41 FF C1 48 83 C0 10 41 83 F9 02 72 ? 48 8B 87 ? ? ? ? 48 85 C0 74 ? 90 48 8D 48 ? 33 D2 66 66 0F 1F 84 00 ? ? ? ? 66 0F 6F C1 66 0F 76 01 44 0F 50 C0 45 85 C0 75 ? FF C2 48 83 C1 10 83 FA 01"),
 }
 
 
@@ -247,12 +257,20 @@ def add_derived_offsets(offsets: dict[str, dict], images: dict[str, Image]) -> N
         else:
             result.update(status="ok", rva=immediate, immediate=True)
         offsets[name] = result
-    offsets["dwSensitivity_sensitivity"] = {
-        "module": "client.dll",
-        "status": "unverified-constant",
-        "rva": 0x58,
-        "relative_to": "dwSensitivity",
-    }
+    # The sensitivity getter dereferences the convar pointer at +8, then reads
+    # its float value. Resolve the call before extracting the value offset.
+    pattern = "E8 ? ? ? ? F3 0F 59 C6 F3 0F 11 86"
+    hits = client.scan(pattern)
+    sensitivity = {"module": "client.dll", "pattern": pattern, "matches": hits,
+                   "relative_to": "dwSensitivity", "status": "missing" if not hits else "ambiguous"}
+    if len(hits) == 1:
+        getter = client.resolve_rel32(hits[0], 1, 5)
+        code = client.pe.get_data(getter, 10)
+        if code[:8] == bytes.fromhex("48 8B 41 08 F3 0F 10 40") and code[9:10] == b"\xC3":
+            sensitivity.update(status="ok", rva=code[8], getter=getter, pointer_offset=8)
+        else:
+            sensitivity.update(status="unexpected-getter", getter=getter)
+    offsets["dwSensitivity_sensitivity"] = sensitivity
 
 
 def dump_buttons(client: Image) -> list[dict]:
