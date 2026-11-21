@@ -1,0 +1,53 @@
+// dumped by Michel
+// 2026-11-21 21:35:07 +0100
+
+// client.dll
+dwCSGOInput = 0x256D560
+dwEntityList = 0x270D5B0
+dwGameEntitySystem = 0x270D5B0
+dwGameRules = 0x25573F8
+dwGlobalVars = 0x2223AD0
+dwGlowManager = 0x2554110
+dwLocalPlayerController = 0x252F300
+dwPrediction = 0x25579C0
+dwSensitivity = 0x2554C40
+dwViewMatrix = 0x255D3D0
+dwViewRender = 0x255DD98
+inventoryManager = 0x24CABB0
+dwGameEntitySystem_highestEntityIndex = 0x2120
+dwViewAngles = 0x256DBE8
+dwLocalPlayerPawn = 0x2557AB8
+
+// engine2.dll
+dwBuildNumber = 0x6B2D1C
+dwNetworkGameClient = 0x9AFB90
+dwWindowHeight = 0x9B42EC
+dwWindowWidth = 0x9B42E8
+
+// buttons
+button_attack = 0x2227980
+button_attack2 = 0x2227A10
+button_back = 0x2227C50
+button_duck = 0x2227F20
+button_forward = 0x2227BC0
+button_jump = 0x2227E90
+button_left = 0x2227CE0
+button_reload = 0x22278F0
+button_right = 0x2227D70
+button_turnleft = 0x2227AA0
+button_turnright = 0x2227B30
+button_use = 0x2227E00
+
+// vtables
+CCSPlayerInventory = 0x1C01A80
+C_EconItemView = 0x1D18370
+C_EnvSky = 0x1AD9448
+C_EnvSky::rebuild_sky = 0x270C40
+ClientModeCSNormal = 0x1C99460
+ClientModeCSNormal::override_view = 0xB92A20
+C_CSPlayerPawn::NetworkVar_m_EconGloves = 0x1C83890
+
+// functions
+econ_item_view_constructor = 0x1180300
+inventory_metadata_bind = 0x83A530
+econ_item_view_init = 0x118E040
