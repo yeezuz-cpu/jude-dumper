@@ -1,5 +1,5 @@
 // dumped by Michel
-// 2026-11-21 23:58:02 +0100
+// 2026-11-22 17:35:33 +0100
 
 // client.dll
 dwCSGOInput = 0x256D560
@@ -49,9 +49,12 @@ button_use = 0x2227E00
 
 // vtables
 CCSPlayerInventory = 0x1C01A80
+CGameParticleManager = 0x1C297A8
+CGameParticleManager::create_particle = 0x9CFD80
 C_EconItemView = 0x1D18370
 C_EnvSky = 0x1AD9448
 C_EnvSky::rebuild_sky = 0x270C40
+C_SmokeGrenadeProjectile = 0x1BCCA70
 ClientModeCSNormal = 0x1C99460
 ClientModeCSNormal::override_view = 0xB92A20
 C_CSPlayerPawn::NetworkVar_m_EconGloves = 0x1C83890
@@ -65,6 +68,8 @@ CSceneObjectDesc = 0x5E4668
 CSceneObjectDesc::draw = 0x7A540
 
 // functions
+particle_scene_tint = 0xA0DE70
+smoke_volume_init = 0x7D3870
 econ_item_view_constructor = 0x1180300
 inventory_metadata_bind = 0x83A530
 econ_item_view_init = 0x118E040
@@ -77,3 +82,6 @@ resource_path_init = 0x1978A20
 scene_parameter_set = 0x16A650
 scene_light_update = 0x19F300
 scene_sky_draw = 0x154FB0
+
+// schema
+C_SmokeGrenadeProjectile::m_vSmokeColor = 0x136C
