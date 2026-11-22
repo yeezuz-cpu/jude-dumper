@@ -56,6 +56,8 @@ TARGETS = {
 
 # Anchored to the C_EconItemView primary vtable assignment in the constructor.
 FUNCTION_TARGETS = {
+    "particle_scene_tint": ("client.dll", "44 89 44 24 ? 55 53 56 48 8D 6C 24 ? 48 81 EC ? ? ? ? 0F 29"),
+    "smoke_volume_init": ("client.dll", "40 53 48 83 EC 20 8B 91 ? ? ? ? 48 8B D9 85 D2 75 ? 38 91 ? ? ? ? 74 ? 80 B9"),
     "econ_item_view_constructor": ("client.dll", "48 89 5C 24 ? 48 89 74 24 ? 57 48 83 EC 20 48 8D 05 ? ? ? ? 48 8B F9 48 89 01 45 33 C9"),
     "inventory_metadata_bind": ("client.dll", "48 89 5C 24 ? 48 89 6C 24 ? 48 89 4C 24 ? 56 57 41 56 48 83 EC 60"),
     "econ_item_view_init": ("client.dll", "48 89 5C 24 ? 48 89 6C 24 ? 48 89 74 24 ? 48 89 7C 24 ? 41 56 48 83 EC 20 48 8B D9 45 8B F1"),
@@ -310,7 +312,7 @@ def dump_interfaces(images: dict[str, Image]) -> list[dict]:
 
 
 def dump_rtti_vtables(source: Path, images: dict[str, Image]) -> list[dict]:
-    requests = set()
+    requests = {("client.dll", ".?AVC_SmokeGrenadeProjectile@@"), ("client.dll", ".?AVCGameParticleManager@@")}
     for path in source.rglob("*"):
         if path.suffix in {".cpp", ".h"}:
             requests.update(RTTI_PATTERN.findall(path.read_text(encoding="utf-8", errors="replace")))
@@ -357,6 +359,7 @@ def dump_rtti_vtables(source: Path, images: dict[str, Image]) -> list[dict]:
         if row["status"] == "ok":
             row["rva"] = row["matches"][0]
             known_slots = {".?AVClientModeCSNormal@@": {"override_view": 15},
+                           ".?AVCGameParticleManager@@": {"create_particle": 8},
                            ".?AVC_EnvSky@@": {"rebuild_sky": 13},
                            ".?AVCAnimatableSceneObjectDesc@@": {"generate_primitives": 4},
                            ".?AVCAggregateSceneObjectDesc@@": {"draw": 7},
@@ -437,6 +440,7 @@ def render_offset_text(
     schema_log: dict,
     rtti_vtables: list[dict],
     function_targets: dict[str, dict],
+    smoke_schema: dict,
 ) -> str:
     lines = [
         "// dumped by Michel",
@@ -467,9 +471,13 @@ def render_offset_text(
     for name, target in function_targets.items():
         if target["status"] == "ok":
             lines.append(f"{name} = 0x{target['rva']:X}")
+    if smoke_schema.get("status") == "ok":
+        lines.extend(["", "// schema", f"C_SmokeGrenadeProjectile::m_vSmokeColor = 0x{smoke_schema['offset']:X}"])
     if schema_log["status"] == "current" and schema_log["values"]:
         lines.extend(["", "// schema"])
         for field in schema_log["values"]:
+            if smoke_schema.get("status") == "ok" and field['class'] == "C_SmokeGrenadeProjectile" and field['field'] == "m_vSmokeColor":
+                continue
             lines.append(f"{field['class']}::{field['field']} = 0x{field['offset']:X}")
     lines.append("")
     return "\n".join(lines)
@@ -548,6 +556,29 @@ def main() -> int:
     buttons = dump_buttons(images["client.dll"]) if "client.dll" in images else []
     interfaces = dump_interfaces(images)
     rtti_vtables = dump_rtti_vtables(args.root / "src", images)
+    smoke_schema = {"status": "unconfirmed"}
+    smoke_fn = function_targets.get("smoke_volume_init", {})
+    smoke_table = next((x for x in rtti_vtables if x["type"] == ".?AVC_SmokeGrenadeProjectile@@" and x["status"] == "ok"), None)
+    client = images.get("client.dll")
+    if client and smoke_table and smoke_fn.get("status") == "ok":
+        base = client.pe.OPTIONAL_HEADER.ImageBase
+        slot_data = client.pe.get_data(smoke_table["rva"] + 113 * 8, 8)
+        code = client.pe.get_data(smoke_fn["rva"], 96)
+        anchor = b"\xf2\x0f\x10\x81"
+        first = code.find(anchor)
+        second = code.find(anchor, first + len(anchor)) if first >= 0 else -1
+        if len(slot_data) == 8 and struct.unpack("<Q", slot_data)[0] == base + smoke_fn["rva"] and second >= 0:
+            offset = struct.unpack_from("<I", code, second + 4)[0]
+            metadata = False
+            for _, rva, data in client.sections():
+                for match in re.finditer(re.escape(b"m_vSmokeColor\0"), data):
+                    ptr = struct.pack("<Q", base + rva + match.start())
+                    for _, _, section_data in client.sections():
+                        for ref in re.finditer(re.escape(ptr), section_data):
+                            if ref.start() + 20 <= len(section_data) and struct.unpack_from("<I", section_data, ref.start() + 16)[0] == offset:
+                                metadata = True
+            if metadata:
+                smoke_schema = {"status": "ok", "offset": offset, "source": "validated smoke vtable slot, initialization code and field metadata"}
     schema_path = args.schema_log or args.root / "build" / "Release" / "jude.log"
     schema_log = read_schema_log(schema_path, images.get("client.dll"))
 
@@ -566,6 +597,7 @@ def main() -> int:
         "function_targets": function_targets,
         "runtime_signatures": signature_results,
         "schema_requests": schemas,
+        "smoke_color_schema": smoke_schema,
         "hardcoded_rvas": hardcoded,
         "buttons": buttons,
         "interfaces": interfaces,
@@ -578,7 +610,7 @@ def main() -> int:
     report_path.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
     offsets_path = output / "offsets.txt"
     offsets_path.write_text(
-        render_offset_text(offsets, created, buttons, schema_log, rtti_vtables, function_targets),
+        render_offset_text(offsets, created, buttons, schema_log, rtti_vtables, function_targets, smoke_schema),
         encoding="utf-8",
     )
 
