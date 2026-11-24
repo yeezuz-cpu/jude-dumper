@@ -24,6 +24,8 @@ python dump.py --game "D:\SteamLibrary\steamapps\common\Counter-Strike Global Of
 The dumper reads the installed DLLs directly. CS2 doesn't need to be running.
 It writes `build/offsets/offsets.txt` and a detailed JSON report in the same
 folder. The report compares offsets with the previous run when available.
+When available, the output includes the installed CS2 patch version from
+`game/csgo/steam.inf`.
 
 Use `--write-header` to also regenerate Jude's `src/generated/offsets.h`. It
 won't update the rest of the code or build the DLL. Source signature and RTTI

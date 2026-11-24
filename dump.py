@@ -84,6 +84,19 @@ def module_path(game: Path, name: str) -> Path:
     raise FileNotFoundError(f"cannot find {name} under {game}")
 
 
+def game_version(game: Path) -> str | None:
+    try:
+        lines = (game / "csgo" / "steam.inf").read_text(encoding="utf-8-sig").splitlines()
+    except (OSError, UnicodeError):
+        return None
+    for line in lines:
+        key, separator, value = line.partition("=")
+        if separator and key.strip() == "PatchVersion":
+            value = value.strip()
+            return value if re.fullmatch(r"\d+(?:\.\d+)+", value) else None
+    return None
+
+
 def compile_pattern(text: str) -> tuple[bytes, bytes]:
     values = bytearray()
     masks = bytearray()
@@ -441,12 +454,15 @@ def render_offset_text(
     rtti_vtables: list[dict],
     function_targets: dict[str, dict],
     smoke_schema: dict,
+    version: str | None,
 ) -> str:
     lines = [
         "// dumped by Michel",
         f"// {created.astimezone().strftime('%Y-%m-%d %H:%M:%S %z')}",
-        "",
     ]
+    if version:
+        lines.append(f"// CS2 version {version}")
+    lines.append("")
     modules = list(dict.fromkeys(result["module"] for result in offsets.values()))
     for module_index, module in enumerate(modules):
         if module_index:
@@ -584,9 +600,11 @@ def main() -> int:
 
     fingerprints = {name: image.fingerprint for name, image in images.items()}
     created = datetime.now(timezone.utc)
+    version = game_version(args.game)
     report = {
         "format": 1,
         "created_utc": created.isoformat(),
+        "game_version": version,
         "game_root": str(args.game),
         "modules": {
             name: {"path": str(image.path), "sha256": image.fingerprint, "size_of_image": image.image_size}
@@ -610,7 +628,7 @@ def main() -> int:
     report_path.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
     offsets_path = output / "offsets.txt"
     offsets_path.write_text(
-        render_offset_text(offsets, created, buttons, schema_log, rtti_vtables, function_targets, smoke_schema),
+        render_offset_text(offsets, created, buttons, schema_log, rtti_vtables, function_targets, smoke_schema, version),
         encoding="utf-8",
     )
 
@@ -618,6 +636,7 @@ def main() -> int:
     signature_ok = sum(value["status"] in {"ok", "candidate-set"} for value in signature_results)
     summary = [
         f"Jude offset report for {datetime.now().astimezone().isoformat(timespec='seconds')}",
+        f"CS2 version: {version or 'unavailable'}",
         f"Generated globals: {unique}/{len(offsets)} validated",
         f"Runtime signatures: {signature_ok}/{len(signature_results)} usable",
         f"Schema requests inventoried: {len(schemas)} (resolved by Jude at runtime)",

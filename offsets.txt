@@ -1,5 +1,6 @@
 // dumped by Michel
-// 2026-11-24 17:07:55 +0100
+// 2026-11-24 17:10:17 +0100
+// CS2 version 1.42.0.1
 
 // client.dll
 dwCSGOInput = 0x2574560
